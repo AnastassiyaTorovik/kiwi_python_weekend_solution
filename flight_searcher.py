@@ -1,7 +1,7 @@
 from typing import Generator
 from collections import defaultdict, deque
-
 from input_parser import InputParser
+from helpers import Stack
 
 
 class Graph(object):
@@ -33,6 +33,7 @@ class FlightSearcher:
     def __init__(self):
         self.flight_data = InputParser().process_user_input()
         self.input_dict = InputParser().user_input
+        self.paths = []
 
     def _filter_by_bag_counts(self) -> Generator:
         """
@@ -61,9 +62,19 @@ class FlightSearcher:
         pairs = self._create_pairs(data)
         return Graph(pairs)
 
-    @staticmethod
-    def add_path():
-        pass
+    def _save_path(self, origin, destination, parents):
+        stack = Stack()
+        first, last = destination, parents[destination]
+        while last is not None:
+            stack.push(first)
+            first, last = last, parents[last]
+        stack.push(first)
+        stack.push(last)
+        path = []
+        while not stack.is_empty():
+            node = stack.pop()
+            path.append(node) if node is not None else path
+        self.paths.append(path)
 
     def search_flights(self):
         """ pathfinding using breadth-first search algorithm"""
@@ -74,18 +85,19 @@ class FlightSearcher:
         self._contains_origin(filtered_flight_data)
         self._contains_destination(filtered_flight_data)
         graph = self._build_graph(filtered_flight_data)
-
         q = deque()
         parents = {}
         visited = []
         q.append(origin)
         parents[origin] = None
 
-        while not q:
+        while not not q:  # queue not empty
             node = q.popleft()
             if node == destination:
-                pass
+                self._save_path(origin, destination, parents)
+                print(self.paths)
+                return
 
 
 if __name__ == "__main__":
-    FlightSearcher()
+    FlightSearcher().search_flights()
