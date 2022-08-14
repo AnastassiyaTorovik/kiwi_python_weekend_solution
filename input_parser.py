@@ -1,7 +1,7 @@
 import argparse
 import os
-from collections import namedtuple
 import csv
+from fligh_dataclass import FlightData
 
 
 def parse_arguments() -> dict:
@@ -64,11 +64,12 @@ class InputParser:
         for better readability and consuming less memory.
         :return: generator object
         """
-        with open(self.user_input['flight_data_file'], 'r') as csv_file:
+        # with open(self.user_input['flight_data_file'], 'r') as csv_file:
+        with open('example/example0.csv', 'r') as csv_file:
             reader = csv.reader(csv_file)
-            Flight = namedtuple("Flight", next(reader), rename=True)
             for row in reader:
-                flight = Flight(*row)
+                next(reader)
+                flight = FlightData(*row)
                 yield flight
 
     def process_user_input(self):
