@@ -1,4 +1,4 @@
-from typing import Generator
+from typing import Generator, List, Tuple
 from collections import defaultdict, deque
 from input_parser import InputParser
 from helpers import Stack
@@ -54,7 +54,7 @@ class FlightSearcher:
         else:
             raise AttributeError(f'Destination airport code {self.input_dict["destination"]} is not found')
 
-    def _create_pairs(self, data) -> list[tuple]:
+    def _create_pairs(self, data) -> List[Tuple]:
         """ Regroup flight information into tuples to be able to build a graph """
         return [(flight.origin, flight) for flight in data]
 
@@ -100,4 +100,6 @@ class FlightSearcher:
 
 
 if __name__ == "__main__":
-    FlightSearcher().search_flights()
+    # FlightSearcher().search_flights()
+    # InputParser().process_user_input()
+    pass

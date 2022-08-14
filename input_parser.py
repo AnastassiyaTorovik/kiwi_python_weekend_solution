@@ -64,11 +64,10 @@ class InputParser:
         for better readability and consuming less memory.
         :return: generator object
         """
-        # with open(self.user_input['flight_data_file'], 'r') as csv_file:
-        with open('example/example0.csv', 'r') as csv_file:
+        with open(self.user_input['flight_data_file'], 'r') as csv_file:
             reader = csv.reader(csv_file)
+            next(reader)
             for row in reader:
-                next(reader)
                 flight = FlightData(*row)
                 yield flight
 
