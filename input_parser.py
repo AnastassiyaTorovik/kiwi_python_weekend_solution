@@ -30,9 +30,9 @@ def parse_arguments() -> dict:
     # }
     result = {
         "flight_data_file": 'example/example0.csv',
-        "origin": 'WIW',
+        "origin": 'ECV',
         "destination": 'RFZ',
-        "bags_count": 1,
+        "bags_count": 0,
         "is_return": False
     }
     return result

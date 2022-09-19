@@ -1,15 +1,13 @@
-from collections import deque
+from collections import deque, defaultdict
 from input_parser import InputParser
-from helpers import Stack
-from typing import Iterable, Dict
+from typing import Iterable, Dict, List
 from fligh_dataclass import FlightData
-from helpers import Graph
 
 
 class FlightSearcher:
     def __init__(self):
         self.flight_data = InputParser().process_user_input()
-        self.input_dict = InputParser().user_input
+        self.input_dict = InputParser().user_input # TODO sort input flights
         self.paths = []
 
     def _filter_by_bag_counts(self) -> Iterable:
@@ -27,27 +25,12 @@ class FlightSearcher:
         if not self.input_dict['destination'].upper() in (flight.destination for flight in data):
             raise AttributeError(f'Destination airport code {self.input_dict["destination"]} is not found')
 
-    def _create_pairs(self, data: Iterable) -> Dict[str, FlightData]:
+    def _create_pairs(self, data: Iterable) -> Dict[str, List[FlightData]]: # TODO remove duplicated func
         """ Create helper index to be able to build a graph """
-        return {flight.origin: flight for flight in data}
-
-    def _build_graph(self, data) -> Graph:
-        pairs = self._create_pairs(data)
-        return Graph(pairs)
-
-    def _save_path(self, origin, destination, parents):
-        stack = Stack()
-        first, last = destination, parents[destination]
-        while last is not None:
-            stack.push(first)
-            first, last = last, parents[last]
-        stack.push(first)
-        stack.push(last)
-        path = []
-        while not stack.is_empty():
-            node = stack.pop()
-            path.append(node) if node is not None else path
-        self.paths.append(path)
+        indexed_flights = defaultdict(list)
+        for flight in data:
+            indexed_flights[flight.origin].append(flight)
+        return indexed_flights
 
     def search_flights(self):
         """ pathfinding using breadth-first search algorithm"""
@@ -57,19 +40,30 @@ class FlightSearcher:
         filtered_flight_data = self._filter_by_bag_counts()
         self._validate_if_contains_origin(filtered_flight_data)
         self._validate_if_contains_destination(filtered_flight_data)
-        graph = self._build_graph(filtered_flight_data)
+        graph = self._create_pairs(filtered_flight_data)
         q = deque()
-        parents = {}
         visited = []
-        q.append(origin)
-        parents[origin] = None
+        for flight in graph.get(origin):
+            q.append(flight)
 
         while not not q:  # queue not empty
             node = q.popleft()
-            if node == destination:
-                self._save_path(origin, destination, parents)
-                print(self.paths)
-                return
+            if node.destination == destination:
+                self.paths.append(node)
+                continue
+            possible_routes = graph.get(node.destination)
+            for possible_node in possible_routes:
+                if possible_node.destination == origin:
+                    continue
+
+                if bool(1 < (possible_node.departure - node.arrival).total_seconds() / 3600 < 6) is False:
+                    continue
+
+                possible_node.parent = node
+                if possible_node not in visited:
+                    visited.append(possible_node)
+                    q.append(possible_node)
+        print(self.paths)
 
 
 if __name__ == "__main__":

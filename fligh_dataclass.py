@@ -1,6 +1,6 @@
 from dataclasses import dataclass
+from typing import Optional, Any, List, Union
 from datetime import datetime
-from typing import Optional
 
 
 @dataclass
@@ -8,8 +8,17 @@ class FlightData:
     flight_no: Optional[str] = None
     origin: Optional[str] = None
     destination: Optional[str] = None
-    departure: Optional[datetime] = None
-    arrival: Optional[datetime] = None
+    departure: Optional[Union[str, datetime]] = None
+    arrival: Optional[Union[str, datetime]] = None
     base_price: Optional[int] = None
     bag_price: Optional[int] = None
     bags_allowed: Optional[int] = None
+    parent: Optional[List[Any]] = None
+
+    def __post_init__(self):
+        try:
+            self.departure = datetime.strptime(self.departure, '%Y-%m-%dT%H:%M:%S')
+            self.arrival = datetime.strptime(self.arrival, '%Y-%m-%dT%H:%M:%S')
+        except Exception as e:
+            raise ValueError(f"The departure and arrival should be in datetime format: {e}")
+
