@@ -80,7 +80,7 @@ class InputParser:
                 flights.append(flight)
             return flights
 
-    def process_user_input(self) -> List[FlightData]:
+    def process_input(self) -> List[FlightData]:
         """Main function executing the above defined steps
         :return: named tuples for flight data packed in generator object
         """

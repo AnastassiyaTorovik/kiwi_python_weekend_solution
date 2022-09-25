@@ -2,14 +2,15 @@ from collections import deque, defaultdict
 from input_parser import InputParser
 from typing import Iterable, Dict, List
 from fligh_dataclass import FlightData
+from dataclasses import asdict
 
 
 class FlightSearcher:
     def __init__(self):
-        self.flight_data: List[FlightData] = InputParser().process_user_input() # TODO sort input flights
+        self.flight_data: List[FlightData] = InputParser().process_input() # TODO sort input flights
         self.user_input: dict = InputParser().user_input
         self.found_paths: List[FlightData] = []
-        self.tmp_output = deque()
+        self._tmp_output = deque()
 
     def _filter_by_bag_counts(self) -> Iterable:
         """
@@ -35,22 +36,40 @@ class FlightSearcher:
 
     def _extract_routes(self, path: FlightData):
         """recursive function to build full route for each flight"""
+        path_to_store = asdict(path)
+        del path_to_store['parent']
+        self._tmp_output.appendleft(path_to_store)
         if not path.parent:
-            self.tmp_output.appendleft(path)
             return
         else:
-            self.tmp_output.appendleft(path)
             path = path.parent
             self._extract_routes(path)
 
-    def _build_output(self):
+    def _summarize_route_info(self):
+        flights_overview = {}
+        flights = list(self._tmp_output.copy())
+        flights_overview['flights'] = flights  # TODO convert datetime
+        flights_overview['bags_allowed'] = min(flight.get('bags_allowed') for flight in flights)
+        flights_overview['bags_counts'] = self.user_input.get('bags_count')
+        flights_overview['destination'] = self.user_input.get('destination')
+        flights_overview['origin'] = self.user_input.get('origin')
+        flights_overview['total_price'] = sum(float(flight.get('base_price')) for flight in flights)
+        if len(flights) == 1:
+            flights_overview['travel_time'] = flights[0]['arrival'] - flights[0]['departure']
+        else:
+            flights_overview['travel_time'] = flights[-1]['arrival'] - flights[0]['departure']
+        return flights_overview
+
+    def _build_final_output(self):
         """function for building the output json"""
-        result = []
+        results = []
         for path in self.found_paths:
             self._extract_routes(path)
-            result.append({'flights': self.tmp_output.copy()})
-            self.tmp_output.clear()
-        return result
+            result = self._summarize_route_info()
+            results.append(result)
+            self._tmp_output.clear()
+        results.sort(key=lambda x: x['total_price'])
+        return results
 
     def search_flights(self):
         """ pathfinding using breadth-first search algorithm"""
@@ -83,8 +102,8 @@ class FlightSearcher:
                 if possible_node not in visited:
                     visited.append(possible_node)
                     q.append(possible_node)
-        routes_output = self._build_output()
-        print(self.found_paths)
+        routes_output = self._build_final_output()
+        print(routes_output)
 
 
 if __name__ == "__main__":
