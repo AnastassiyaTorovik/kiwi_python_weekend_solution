@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Any, List, Union
+from typing import Optional, Any, Union
 from datetime import datetime
 
 
@@ -12,8 +12,8 @@ class FlightData:
     arrival: Optional[Union[str, datetime]] = None
     base_price: Optional[int] = None
     bag_price: Optional[int] = None
-    bags_allowed: Optional[int] = None
-    parent: Optional[List[Any]] = None
+    bags_allowed: Optional[dataclass] = None
+    parent: Optional[Any] = None
 
     def __post_init__(self):
         try:
